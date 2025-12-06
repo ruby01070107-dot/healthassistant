@@ -3,718 +3,472 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>健康小幫手: 用藥睡眠運動紀錄</title>
+    <title>✨健康小幫手 | 多巴胺紀錄站✨</title>
     <style>
-        /* --- Dopamine Colors & General Styles --- */
         :root {
-            --color-white: #ffffff;
-            --color-pink: #ff69b4;     /* 亮粉 */
-            --color-yellow: #ffd700;   /* 金黃 */
-            --color-turquoise: #40e0d0; /* 土耳其藍 */
-            --color-orange: #ffa500;   /* 鮮橙 */
-            --color-green: #3cb371;    /* 鼓勵綠 */
-            --color-shadow: rgba(0, 0, 0, 0.1);
+            /* 多巴胺配色 */
+            --bg-color: #ffffff;
+            --primary: #FF69B4; /* 熱情粉 */
+            --secondary: #FFD700; /* 活力黃 */
+            --accent: #00BFFF; /* 清爽藍 */
+            --success: #32CD32; /* 療癒綠 */
+            --text-color: #333;
+            --card-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--color-white); /* 底圖白色 */
-            color: #333;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 20px;
             line-height: 1.6;
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 800px;
             margin: 0 auto;
-            background: var(--color-white);
+            background: #fff;
             padding: 20px;
-            box-shadow: 0 4px 15px var(--color-shadow);
-            border-radius: 12px;
+            border-radius: 20px;
+            /* 讓邊框有點彩虹感 */
+            border: 3px solid transparent;
+            background-image: linear-gradient(white, white), linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
+            background-origin: border-box;
+            background-clip: content-box, border-box;
+            box-shadow: var(--card-shadow);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
         }
 
         h1 {
-            color: var(--color-pink);
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+        }
+
+        .date-picker-section {
+            background-color: #fff8e1; /* 淡黃色背景 */
+            padding: 15px;
+            border-radius: 15px;
             text-align: center;
-            border-bottom: 2px solid var(--color-pink);
+            margin-bottom: 20px;
+            border: 2px solid var(--secondary);
+        }
+
+        input[type="date"] {
+            padding: 10px;
+            font-size: 1.2rem;
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            color: var(--text-color);
+        }
+
+        /* 區塊通用樣式 */
+        .section-card {
+            background: #fdfdfd;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 8px solid var(--accent);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .section-card:hover {
+            transform: translateY(-3px);
+        }
+
+        h2 {
+            color: var(--accent);
+            border-bottom: 2px dashed #eee;
             padding-bottom: 10px;
         }
 
-        /* --- Month Tabs Style --- */
-        .month-tabs {
+        /* 1. 用藥紀錄 */
+        .med-group {
             display: flex;
-            overflow-x: auto;
-            margin-bottom: 20px;
-            padding: 5px 0;
-            border-bottom: 3px solid #eee;
-        }
-        .month-tabs button {
-            flex-shrink: 0;
-            padding: 10px 15px;
-            margin-right: 5px;
-            background-color: #f0f0f0;
-            border: none;
-            border-radius: 8px 8px 0 0;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .month-tabs button.active {
-            background-color: var(--color-turquoise);
-            color: var(--color-white);
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        /* --- Daily Calendar Style --- */
-        .calendar-grid {
+        .checkbox-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            background: #fff0f5;
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 2px solid pink;
+        }
+
+        input[type="checkbox"] {
+            width: 25px;
+            height: 25px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        /* 鼓勵動畫區 */
+        #celebration-area {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            min-height: 50px;
+            margin-top: 10px;
+            display: none; /* 預設隱藏 */
+            animation: popIn 0.5s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 2. 睡眠紀錄 */
+        .sleep-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
-        .date-card {
-            background-color: #fffaf0; /* 奶白色 */
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px var(--color-shadow);
-            cursor: pointer;
-            border-left: 5px solid var(--color-yellow);
-            transition: transform 0.2s, background-color 0.2s;
+        
+        .full-width {
+            grid-column: span 2;
         }
-        .date-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 10px var(--color-shadow);
-        }
-        .date-card.has-record {
-            border-left: 5px solid var(--color-green);
-            background-color: #f0fff0; /* 淺綠 */
-        }
-        .date-card h3 {
-            margin-top: 0;
+
+        label {
+            display: block;
             margin-bottom: 5px;
-            font-size: 1.2em;
-            color: var(--color-orange);
-        }
-
-        /* --- Modal and Form Styles --- */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 10;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-        .modal-content {
-            background-color: var(--color-white);
-            margin: 5% auto;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px var(--color-shadow);
-            width: 80%;
-            max-width: 600px;
-            position: relative;
-        }
-        .close-btn {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
             font-weight: bold;
-            cursor: pointer;
-        }
-        .form-section {
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            background-color: #fefefe;
-        }
-        .form-section h3 {
-            color: var(--color-pink);
-            border-bottom: 1px dashed #ccc;
-            padding-bottom: 5px;
-            margin-top: 0;
-        }
-
-        /* --- Custom Checkbox/Input Styles --- */
-        .checkbox-group label {
-            display: inline-flex;
-            align-items: center;
-            margin-right: 15px;
-            font-weight: 500;
             color: #555;
         }
-        input[type="checkbox"] {
-            transform: scale(1.5);
-            margin-right: 8px;
-            accent-color: var(--color-turquoise);
-        }
-        input[type="time"], input[type="number"], textarea, input[type="text"] {
+
+        input[type="time"], input[type="text"], textarea, input[type="number"] {
             width: 100%;
             padding: 10px;
-            margin-top: 5px;
-            margin-bottom: 10px;
             border: 1px solid #ccc;
-            border-radius: 5px;
+            border-radius: 8px;
             box-sizing: border-box;
         }
+
         textarea {
             resize: vertical;
-            min-height: 80px;
+            height: 80px;
         }
-        .sleep-time-group {
+
+        /* 3. 運動紀錄 */
+        .exercise-row {
             display: flex;
             gap: 10px;
-            align-items: center;
-        }
-        .sleep-time-group input {
-            width: 45%;
+            margin-bottom: 10px;
         }
 
-        /* --- Success/Animation Feedback --- */
-        #medication-feedback {
-            font-size: 1.2em;
+        /* 4. 開心日記 */
+        .happy-box textarea {
+            border: 2px solid var(--secondary);
+            background-color: #fffff0;
+        }
+
+        /* 5. 下載與按鈕 */
+        .action-bar {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
             font-weight: bold;
-            color: var(--color-green);
+            color: white;
+            margin: 5px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-save {
+            background-color: var(--success);
+        }
+
+        .btn-download {
+            background-color: var(--accent);
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+        }
+
+        .info-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #888;
             margin-top: 10px;
         }
-        .medication-success {
-            animation: pulse 1s infinite alternate;
-        }
-        @keyframes pulse {
-            from { transform: scale(1); opacity: 1; }
-            to { transform: scale(1.05); opacity: 0.9; }
-        }
 
-        /* --- Footer/Progress --- */
-        .footer-controls {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px dashed #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .progress-indicator {
-            font-size: 1.1em;
-            color: #555;
-            font-weight: 600;
-        }
-        .download-btn {
-            background-color: var(--color-orange);
-            color: var(--color-white);
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1em;
-        }
-        .download-btn:hover {
-            background-color: #e59400;
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>✨ 健康小幫手：用藥、睡眠、運動紀錄 ✨</h1>
-    <p style="text-align: center; color: #666;">記錄區間：114年12月6日 ~ 115年7月31日</p>
+    <header>
+        <h1>💊 健康小幫手 💤</h1>
+        <p>2025-2026 用藥・睡眠・運動紀錄</p>
+    </header>
 
-    <div id="monthTabs" class="month-tabs">
-        </div>
-
-    <div id="calendarGrid" class="calendar-grid">
-        </div>
-
-    <div class="footer-controls">
-        <div id="progressIndicator" class="progress-indicator">
-            總體紀錄進度：0 / 239 天
-        </div>
-        <button id="downloadBtn" class="download-btn" onclick="downloadData()">
-            ⬇️ 下載 Excel 紀錄檔 (CSV)
-        </button>
+    <div class="date-picker-section">
+        <label for="recordDate">📅 今天是：</label>
+        <input type="date" id="recordDate" onchange="loadData()">
     </div>
-</div>
 
-<div id="recordModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeModal()">&times;</span>
-        <h2 id="modalDateTitle" style="color: var(--color-turquoise);"></h2>
+    <form id="healthForm">
+        
+        <div class="section-card" style="border-left-color: var(--primary);">
+            <h2>💊 用藥紀錄 (Medication)</h2>
+            <div class="med-group">
+                <label class="checkbox-wrapper">
+                    <span>☀️ 早餐後</span>
+                    <input type="checkbox" id="medBreakfast" onchange="checkMedication()">
+                </label>
+                <label class="checkbox-wrapper">
+                    <span>🍱 午餐後</span>
+                    <input type="checkbox" id="medLunch" onchange="checkMedication()">
+                </label>
+                <label class="checkbox-wrapper">
+                    <span>🌙 晚餐後</span>
+                    <input type="checkbox" id="medDinner" onchange="checkMedication()">
+                </label>
+                <label class="checkbox-wrapper">
+                    <span>🛌 睡前</span>
+                    <input type="checkbox" id="medBedtime" onchange="checkMedication()">
+                </label>
+            </div>
+            <div id="celebration-area"></div>
+        </div>
 
-        <form id="dailyRecordForm">
-            <div class="form-section">
-                <h3>💊 用藥紀錄</h3>
-                <div class="checkbox-group">
-                    <label><input type="checkbox" name="medication" value="breakfast" onchange="checkMedicationCompletion()"> 早餐後</label>
-                    <label><input type="checkbox" name="medication" value="lunch" onchange="checkMedicationCompletion()"> 午餐後</label>
-                    <label><input type="checkbox" name="medication" value="dinner" onchange="checkMedicationCompletion()"> 晚餐後</label>
-                    <label><input type="checkbox" name="medication" value="bedtime" onchange="checkMedicationCompletion()"> 睡前</label>
+        <div class="section-card" style="border-left-color: #9370DB;">
+            <h2>💤 睡眠紀錄 (Sleep)</h2>
+            <div class="sleep-grid">
+                <div>
+                    <label>🛌 幾點睡覺</label>
+                    <input type="time" id="sleepTime" onchange="calcSleepDuration()">
                 </div>
-                <div id="medication-feedback"></div>
-            </div>
-
-            <div class="form-section">
-                <h3>😴 睡眠紀錄</h3>
-                <div class="sleep-time-group">
-                    <label for="sleepTime">幾點睡覺:</label>
-                    <input type="time" id="sleepTime" name="sleepTime" onchange="calculateSleepDuration()">
-                    <label for="wakeTime">幾點清醒:</label>
-                    <input type="time" id="wakeTime" name="wakeTime" onchange="calculateSleepDuration()">
+                <div>
+                    <label>🌅 幾點起床</label>
+                    <input type="time" id="wakeTime" onchange="calcSleepDuration()">
                 </div>
-                <p>睡眠總時間: <strong id="durationDisplay">0 小時 0 分鐘</strong></p>
-                <input type="hidden" id="sleepDuration" name="sleepDuration">
-
-                <label for="cantSleep">睡不著可以做什麼 (建議):</label>
-                <textarea id="cantSleep" name="cantSleep" placeholder="例如：聽白噪音、冥想... (預設提供建議，此處讓使用者輸入自己的認知)"></textarea>
-                
-                <label for="sleepHelper">我做了什麼睡得比較久:</label>
-                <textarea id="sleepHelper" name="sleepHelper" placeholder="實際嘗試並有效的活動"></textarea>
-            </div>
-
-            <div class="form-section">
-                <h3>🏃 運動紀錄</h3>
-                <div id="exerciseInputs">
-                    <label>運動 1:</label>
-                    <input type="text" name="exerciseName1" placeholder="運動名稱 (如：慢跑)">
-                    <input type="number" name="exerciseDuration1" placeholder="時間 (分鐘)">
-                    
-                    <label>運動 2 (可選):</label>
-                    <input type="text" name="exerciseName2" placeholder="運動名稱 (如：瑜伽)">
-                    <input type="number" name="exerciseDuration2" placeholder="時間 (分鐘)">
+                <div class="full-width">
+                    <label>⏱️ 睡眠總時間</label>
+                    <input type="text" id="totalSleep" readonly placeholder="自動計算..." style="background:#eee; color:blue; font-weight:bold;">
                 </div>
-                <button type="button" style="background-color: var(--color-turquoise); color: var(--color-white);" onclick="addExerciseField()">+ 增加運動項目</button>
+                <div class="full-width">
+                    <label>🐑 睡不著做什麼？/ 做了什麼睡比較久？</label>
+                    <textarea id="sleepNotes" placeholder="例：聽輕音樂、喝熱牛奶..."></textarea>
+                </div>
             </div>
+        </div>
 
-            <div class="form-section">
-                <h3>😄 開心紀錄</h3>
-                <label for="happyEvent">今天做了什麼事讓我很開心:</label>
-                <textarea id="happyEvent" name="happyEvent" placeholder="寫下今天讓你心情好的事，為生活增添色彩！"></textarea>
+        <div class="section-card" style="border-left-color: var(--success);">
+            <h2>🏃‍♀️ 運動紀錄 (Exercise)</h2>
+            <div class="exercise-row">
+                <input type="text" id="ex1Type" placeholder="運動項目 (例: 慢跑)">
+                <input type="text" id="ex1Time" placeholder="時間 (例: 30分)">
             </div>
+            <div class="exercise-row">
+                <input type="text" id="ex2Type" placeholder="運動項目 (例: 瑜珈)">
+                <input type="text" id="ex2Time" placeholder="時間 (例: 1小時)">
+            </div>
+        </div>
 
-            <button type="submit" style="background-color: var(--color-pink); color: var(--color-white); padding: 12px; width: 100%; font-size: 1.1em;">儲存紀錄</button>
-        </form>
-    </div>
+        <div class="section-card happy-box" style="border-left-color: var(--secondary);">
+            <h2>😊 今天發生什麼開心的事？</h2>
+            <textarea id="happyNotes" placeholder="記錄下微小的幸福，讓心情變好..."></textarea>
+        </div>
+
+        <div class="action-bar">
+            <button type="button" class="btn btn-save" onclick="saveData()">💾 儲存今日紀錄</button>
+            <button type="button" class="btn btn-download" onclick="exportToExcel()">📊 下載 Excel 表格</button>
+            <p class="info-text">💡 記得每天按「儲存」。資料存在您的瀏覽器中。</p>
+        </div>
+
+    </form>
 </div>
 
 <script>
-    // 修正：確保日期格式正確，月份是從 0 開始 (11=12月, 6=7月)
-    const START_DATE = new Date(2025, 11, 6); // 2025年12月6日
-    const END_DATE = new Date(2026, 6, 31);   // 2026年7月31日 (Minguo 115)
-    let CURRENT_DATE_STR = ''; // 紀錄目前開啟的日期 (YYYY-MM-DD 格式)
-    
-    // (1) 鼓勵訊息列表 (不重複)
-    const encouragementMessages = [
-        "Excellent! 你好棒！🔥",
-        "Great Job! 今天也是元氣滿滿的一天！💖",
-        "Perfect! 保持這個好習慣！✨",
-        "Outstanding! 藥物都有準時吃喔！💯",
-        "Superb! 健康的小齒輪轉動得很順暢！💪",
-        "Magnificent! 每日任務完成，值得一個愛心！🥰"
+    // 初始化：設定日期為今天
+    window.onload = function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('recordDate').value = today;
+        loadData(); // 載入今天的資料
+    };
+
+    // 鼓勵語錄
+    const praises = [
+        "🎉 Excellent! 你好棒！",
+        "🌟 太完美了！為健康加分！",
+        "💪 堅持就是勝利，你是最棒的！",
+        "💖 愛自己，從按時吃藥開始！",
+        "🎆 哇！全部完成，給妳一個煙火！"
     ];
-    let lastEncouragementIndex = -1;
 
-    // --- 輔助函式 ---
-    function dateToYMD(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
+    // 1. 檢查用藥並顯示動畫
+    function checkMedication() {
+        const b = document.getElementById('medBreakfast').checked;
+        const l = document.getElementById('medLunch').checked;
+        const d = document.getElementById('medDinner').checked;
+        const s = document.getElementById('medBedtime').checked;
 
-    function dateToMinguo(date) {
-        const year = date.getFullYear();
-        const minguoYear = year - 1911;
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        return `${minguoYear}年${month}月${day}日`;
-    }
+        const area = document.getElementById('celebration-area');
 
-    function getLocalStorageKey(dateStr) {
-        return `healthRecord_${dateStr}`;
-    }
-
-    // --- 核心功能：日曆與月份生成 ---
-
-    function initializeCalendar() {
-        const monthTabsContainer = document.getElementById('monthTabs');
-        let currentDate = new Date(START_DATE);
-        let months = new Set(); // 儲存需要建立的分頁
-        let firstMonthKey = '';
-
-        // 遍歷所有日期，找出需要的分頁
-        // 修正：使用 do-while 確保至少執行一次，並檢查日期是否在範圍內
-        let tempDate = new Date(START_DATE);
-        while (tempDate <= END_DATE) {
-            const monthKey = `${tempDate.getFullYear()}-${tempDate.getMonth() + 1}`;
-            months.add(monthKey);
-            
-            // 跳到下個月的第一天
-            if (tempDate.getMonth() === 11) { // 12月
-                tempDate.setFullYear(tempDate.getFullYear() + 1, 0, 1);
-            } else {
-                tempDate.setMonth(tempDate.getMonth() + 1, 1);
-            }
-            // 如果新日期超過結束日期，但結束日期在目標月份，仍需包含
-            if (tempDate > END_DATE && tempDate.getMonth() !== END_DATE.getMonth()) break;
+        if (b && l && d && s) {
+            const randomPraise = praises[Math.floor(Math.random() * praises.length)];
+            area.innerHTML = randomPraise + " 🎆🎆🎆";
+            area.style.display = "block";
+        } else {
+            area.style.display = "none";
         }
+    }
 
-        // 渲染月份按鈕
-        Array.from(months).forEach((monthKey, index) => {
-            if (index === 0) firstMonthKey = monthKey;
+    // 2. 計算睡眠時間
+    function calcSleepDuration() {
+        const start = document.getElementById('sleepTime').value;
+        const end = document.getElementById('wakeTime').value;
 
-            const [year, month] = monthKey.split('-');
-            const displayYear = parseInt(year) - 1911;
-            const displayMonth = parseInt(month);
+        if (start && end) {
+            let startDate = new Date(`2000-01-01T${start}`);
+            let endDate = new Date(`2000-01-01T${end}`);
+
+            // 如果起床時間比睡覺時間早，代表跨夜了 (例如 23:00 睡, 07:00 起)
+            if (endDate < startDate) {
+                endDate.setDate(endDate.getDate() + 1);
+            }
+
+            const diff = endDate - startDate;
+            const hours = Math.floor(diff / 1000 / 60 / 60);
+            const minutes = Math.floor((diff / 1000 / 60) % 60);
+
+            document.getElementById('totalSleep').value = `${hours} 小時 ${minutes} 分鐘`;
+        }
+    }
+
+    // 3. 儲存資料到 LocalStorage
+    function saveData() {
+        const date = document.getElementById('recordDate').value;
+        if (!date) { alert("請選擇日期！"); return; }
+
+        const data = {
+            meds: {
+                breakfast: document.getElementById('medBreakfast').checked,
+                lunch: document.getElementById('medLunch').checked,
+                dinner: document.getElementById('medDinner').checked,
+                bedtime: document.getElementById('medBedtime').checked
+            },
+            sleep: {
+                start: document.getElementById('sleepTime').value,
+                end: document.getElementById('wakeTime').value,
+                total: document.getElementById('totalSleep').value,
+                notes: document.getElementById('sleepNotes').value
+            },
+            exercise: [
+                { type: document.getElementById('ex1Type').value, time: document.getElementById('ex1Time').value },
+                { type: document.getElementById('ex2Type').value, time: document.getElementById('ex2Time').value }
+            ],
+            happy: document.getElementById('happyNotes').value
+        };
+
+        // 取出舊有資料庫
+        let allData = JSON.parse(localStorage.getItem('healthAssistantData')) || {};
+        allData[date] = data; // 存入該日期的資料
+        localStorage.setItem('healthAssistantData', JSON.stringify(allData));
+
+        alert("✅ " + date + " 的紀錄已儲存！\n明天也要加油喔！");
+    }
+
+    // 4. 讀取資料
+    function loadData() {
+        const date = document.getElementById('recordDate').value;
+        let allData = JSON.parse(localStorage.getItem('healthAssistantData')) || {};
+        const data = allData[date];
+
+        // 重置欄位
+        document.getElementById('healthForm').reset();
+        document.getElementById('celebration-area').style.display = "none";
+
+        if (data) {
+            // 回填資料
+            document.getElementById('medBreakfast').checked = data.meds.breakfast;
+            document.getElementById('medLunch').checked = data.meds.lunch;
+            document.getElementById('medDinner').checked = data.meds.dinner;
+            document.getElementById('medBedtime').checked = data.meds.bedtime;
             
-            const button = document.createElement('button');
-            button.textContent = `${displayYear}年${displayMonth}月`;
-            button.dataset.monthKey = monthKey;
-            button.onclick = () => renderCalendarGrid(monthKey);
-            monthTabsContainer.appendChild(button);
+            checkMedication(); // 檢查是否要顯示煙火
+
+            document.getElementById('sleepTime').value = data.sleep.start;
+            document.getElementById('wakeTime').value = data.sleep.end;
+            document.getElementById('totalSleep').value = data.sleep.total;
+            document.getElementById('sleepNotes').value = data.sleep.notes;
+
+            if(data.exercise[0]) {
+                document.getElementById('ex1Type').value = data.exercise[0].type;
+                document.getElementById('ex1Time').value = data.exercise[0].time;
+            }
+            if(data.exercise[1]) {
+                document.getElementById('ex2Type').value = data.exercise[1].type;
+                document.getElementById('ex2Time').value = data.exercise[1].time;
+            }
+
+            document.getElementById('happyNotes').value = data.happy;
+        }
+    }
+
+    // 5. 匯出 Excel (CSV)
+    function exportToExcel() {
+        let allData = JSON.parse(localStorage.getItem('healthAssistantData')) || {};
+        
+        // 建立 CSV 標頭
+        let csvContent = "\uFEFF"; // 加入 BOM 以防止中文亂碼
+        csvContent += "日期,早餐藥,午餐藥,晚餐藥,睡前藥,入睡時間,起床時間,總睡眠,睡眠筆記,運動1項目,運動1時間,運動2項目,運動2時間,開心日記\n";
+
+        // 整理資料
+        // 將日期排序
+        const sortedDates = Object.keys(allData).sort();
+
+        sortedDates.forEach(date => {
+            const d = allData[date];
+            // 處理 checkbox 轉成 文字
+            const medB = d.meds.breakfast ? "V" : "";
+            const medL = d.meds.lunch ? "V" : "";
+            const medD = d.meds.dinner ? "V" : "";
+            const medS = d.meds.bedtime ? "V" : "";
+
+            // 處理逗號，避免 CSV 格式跑掉
+            const sleepNote = (d.sleep.notes || "").replace(/,/g, "，").replace(/\n/g, " ");
+            const happyNote = (d.happy || "").replace(/,/g, "，").replace(/\n/g, " ");
+
+            let row = `${date},${medB},${medL},${medD},${medS},${d.sleep.start},${d.sleep.end},${d.sleep.total},${sleepNote},${d.exercise[0].type},${d.exercise[0].time},${d.exercise[1].type},${d.exercise[1].time},${happyNote}`;
+            csvContent += row + "\n";
         });
 
-        // 預設渲染第一個月份 (如果存在)
-        if (firstMonthKey) {
-            renderCalendarGrid(firstMonthKey);
-        } else {
-             document.getElementById('calendarGrid').innerHTML = '<p style="text-align: center; color: red;">錯誤：日期範圍無效或已結束。</p>';
-        }
-    }
-
-    function renderCalendarGrid(activeMonthKey) {
-        const calendarGrid = document.getElementById('calendarGrid');
-        const monthTabs = document.querySelectorAll('#monthTabs button');
-        calendarGrid.innerHTML = '';
-
-        // 更新月份分頁 active 狀態
-        monthTabs.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.monthKey === activeMonthKey) {
-                btn.classList.add('active');
-            }
-        });
-
-        let currentDate = new Date(START_DATE);
-        
-        while (currentDate <= END_DATE) {
-            const currentMonthKey = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}`;
-
-            if (currentMonthKey === activeMonthKey) {
-                const dateStr = dateToYMD(currentDate);
-                const recordKey = getLocalStorageKey(dateStr);
-                const record = localStorage.getItem(recordKey);
-
-                const card = document.createElement('div');
-                card.classList.add('date-card');
-                if (record) {
-                    card.classList.add('has-record'); // 有紀錄則變色
-                }
-                card.dataset.date = dateStr;
-                card.onclick = () => openRecordModal(dateStr);
-                
-                const dayOfWeek = ['日', '一', '二', '三', '四', '五', '六'][currentDate.getDay()];
-
-                card.innerHTML = `
-                    <h3>${dateToMinguo(currentDate).replace(/年|月|日/g, '/')}</h3>
-                    <p>星期 ${dayOfWeek}</p>
-                    <p style="font-size: 0.9em; color: ${record ? 'var(--color-green)' : '#aaa'};">${record ? '✅ 已有紀錄' : '❌ 待紀錄'}</p>
-                `;
-                calendarGrid.appendChild(card);
-            }
-            
-            // 跳到下一天
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-        updateProgressIndicator();
-    }
-
-    // --- (1) 用藥紀錄互動邏輯 ---
-    // 檢查用藥完成度並提供鼓勵
-    function checkMedicationCompletion() {
-        const checkboxes = document.querySelectorAll('#dailyRecordForm input[name="medication"]');
-        const feedbackDiv = document.getElementById('medication-feedback');
-        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-        
-        if (checkedCount === 4) {
-            // 隨機選取不重複的鼓勵訊息
-            let newIndex;
-            do {
-                newIndex = Math.floor(Math.random() * encouragementMessages.length);
-            } while (newIndex === lastEncouragementIndex);
-            lastEncouragementIndex = newIndex;
-
-            const message = encouragementMessages[newIndex];
-            
-            feedbackDiv.innerHTML = `<span class="medication-success">${message}</span>`;
-            feedbackDiv.style.color = 'var(--color-pink)'; // 用愛心色
-            feedbackDiv.style.fontSize = '1.5em';
-            feedbackDiv.innerHTML += ' 💖'; // 補充愛心貼圖
-        } else {
-            feedbackDiv.innerHTML = `已完成 ${checkedCount} / 4 次用藥，加油！`;
-            feedbackDiv.style.color = '#888';
-            feedbackDiv.style.fontSize = '1.2em';
-        }
-    }
-
-    // --- (2) 睡眠紀錄計算 ---
-    function calculateSleepDuration() {
-        const sleepTime = document.getElementById('sleepTime').value;
-        const wakeTime = document.getElementById('wakeTime').value;
-        const durationDisplay = document.getElementById('durationDisplay');
-        const sleepDurationHidden = document.getElementById('sleepDuration');
-
-        if (!sleepTime || !wakeTime) {
-            durationDisplay.textContent = '請輸入睡眠和清醒時間';
-            sleepDurationHidden.value = '';
-            return;
-        }
-
-        const [sh, sm] = sleepTime.split(':').map(Number);
-        const [wh, wm] = wakeTime.split(':').map(Number);
-
-        let sleepDate = new Date(CURRENT_DATE_STR);
-        sleepDate.setHours(sh, sm, 0, 0);
-
-        let wakeDate = new Date(CURRENT_DATE_STR);
-        wakeDate.setHours(wh, wm, 0, 0);
-
-        // 如果清醒時間比睡覺時間早，則假設清醒日期是隔天
-        if (wakeDate < sleepDate) {
-            wakeDate.setDate(wakeDate.getDate() + 1);
-        }
-
-        const diffMs = wakeDate - sleepDate;
-        const totalMinutes = Math.round(diffMs / (1000 * 60));
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-
-        durationDisplay.textContent = `${hours} 小時 ${minutes} 分鐘`;
-        sleepDurationHidden.value = totalMinutes; // 儲存總分鐘數
-    }
-
-    // --- (3) 運動紀錄動態新增欄位 ---
-    let exerciseFieldCount = 2;
-    function addExerciseField() {
-        exerciseFieldCount++;
-        const exerciseInputs = document.getElementById('exerciseInputs');
-        const newFields = document.createElement('div');
-        newFields.innerHTML = `
-            <label>運動 ${exerciseFieldCount}:</label>
-            <input type="text" name="exerciseName${exerciseFieldCount}" placeholder="運動名稱">
-            <input type="number" name="exerciseDuration${exerciseFieldCount}" placeholder="時間 (分鐘)">
-        `;
-        exerciseInputs.appendChild(newFields);
-    }
-    
-    // --- Modal 處理邏輯 ---
-    function openRecordModal(dateStr) {
-        CURRENT_DATE_STR = dateStr;
-        const dateObj = new Date(dateStr);
-        document.getElementById('modalDateTitle').textContent = `紀錄日期: ${dateToMinguo(dateObj)}`;
-        document.getElementById('recordModal').style.display = 'block';
-
-        // 重置表單和邏輯
-        document.getElementById('dailyRecordForm').reset();
-        document.getElementById('durationDisplay').textContent = '0 小時 0 分鐘';
-        document.getElementById('medication-feedback').innerHTML = '';
-        
-        // 重新生成預設運動欄位
-        document.getElementById('exerciseInputs').innerHTML = `
-            <label>運動 1:</label><input type="text" name="exerciseName1" placeholder="運動名稱 (如：慢跑)">
-            <input type="number" name="exerciseDuration1" placeholder="時間 (分鐘)">
-            <label>運動 2 (可選):</label><input type="text" name="exerciseName2" placeholder="運動名稱 (如：瑜伽)">
-            <input type="number" name="exerciseDuration2" placeholder="時間 (分鐘)">
-        `;
-        exerciseFieldCount = 2;
-
-
-        // 載入儲存的資料 (如果有)
-        const record = localStorage.getItem(getLocalStorageKey(dateStr));
-        if (record) {
-            const data = JSON.parse(record);
-            
-            // 載入用藥
-            data.medication.forEach(val => {
-                const cb = document.querySelector(`input[name="medication"][value="${val}"]`);
-                if (cb) cb.checked = true;
-            });
-            checkMedicationCompletion(); // 檢查並顯示鼓勵
-            
-            // 載入睡眠
-            document.getElementById('sleepTime').value = data.sleepTime || '';
-            document.getElementById('wakeTime').value = data.wakeTime || '';
-            document.getElementById('cantSleep').value = data.cantSleep || '';
-            document.getElementById('sleepHelper').value = data.sleepHelper || '';
-            calculateSleepDuration();
-            
-            // 載入運動 (需重新生成欄位)
-            document.getElementById('exerciseInputs').innerHTML = '';
-            exerciseFieldCount = 0;
-            data.exercise.forEach((ex) => {
-                exerciseFieldCount++;
-                const newFields = document.createElement('div');
-                newFields.innerHTML = `
-                    <label>運動 ${exerciseFieldCount}:</label>
-                    <input type="text" name="exerciseName${exerciseFieldCount}" placeholder="運動名稱" value="${ex.name || ''}">
-                    <input type="number" name="exerciseDuration${exerciseFieldCount}" placeholder="時間 (分鐘)" value="${ex.duration || ''}">
-                `;
-                document.getElementById('exerciseInputs').appendChild(newFields);
-            });
-            // 如果儲存的欄位少於 2 個，補齊
-            while (exerciseFieldCount < 2) {
-                addExerciseField();
-            }
-
-            // 載入開心紀錄
-            document.getElementById('happyEvent').value = data.happyEvent || '';
-        }
-        // 確保初始時也執行一次檢查，以便顯示 0/4 的狀態
-        checkMedicationCompletion();
-    }
-
-    function closeModal() {
-        document.getElementById('recordModal').style.display = 'none';
-        // 重新渲染日曆網格，確保卡片顏色更新
-        const activeMonthButton = document.querySelector('#monthTabs button.active');
-        if (activeMonthButton) {
-             renderCalendarGrid(activeMonthButton.dataset.monthKey);
-        }
-    }
-
-    // --- 表單提交與儲存 ---
-    document.getElementById('dailyRecordForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const data = {};
-
-        // 處理用藥 (checkboxes)
-        data.medication = [];
-        formData.getAll('medication').forEach(val => data.medication.push(val));
-        
-        // 處理睡眠
-        data.sleepTime = formData.get('sleepTime');
-        data.wakeTime = formData.get('wakeTime');
-        data.sleepDuration = formData.get('sleepDuration'); // 總分鐘數
-        data.cantSleep = formData.get('cantSleep');
-        data.sleepHelper = formData.get('sleepHelper');
-
-        // 處理運動 (動態欄位)
-        data.exercise = [];
-        for (let i = 1; i <= exerciseFieldCount; i++) {
-            const name = formData.get(`exerciseName${i}`);
-            const duration = formData.get(`exerciseDuration${i}`);
-            // 只有當名稱或時間有輸入時才儲存
-            if (name || duration) {
-                data.exercise.push({ name: name || '', duration: parseInt(duration) || '' });
-            }
-        }
-
-        // 處理開心紀錄
-        data.happyEvent = formData.get('happyEvent');
-
-        // 儲存到 localStorage
-        localStorage.setItem(getLocalStorageKey(CURRENT_DATE_STR), JSON.stringify(data));
-        alert(`🎉 ${CURRENT_DATE_STR} 的紀錄已成功儲存！`);
-        closeModal();
-    });
-
-    // --- (5) 進度表追蹤 ---
-    function updateProgressIndicator() {
-        let totalDays = 0;
-        let recordedDays = 0;
-        let currentDate = new Date(START_DATE);
-
-        // 計算總天數和已紀錄天數
-        while (currentDate <= END_DATE) {
-            totalDays++;
-            const dateStr = dateToYMD(currentDate);
-            if (localStorage.getItem(getLocalStorageKey(dateStr))) {
-                recordedDays++;
-            }
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-
-        document.getElementById('progressIndicator').textContent = `總體紀錄進度：${recordedDays} / ${totalDays} 天`;
-    }
-
-    // --- (5) 下載 Excel 檔 (CSV 模擬) ---
-    function downloadData() {
-        let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF 確保 Excel 正確顯示中文
-        const headers = [
-            "日期", "用藥(早餐)", "用藥(午餐)", "用藥(晚餐)", "用藥(睡前)", 
-            "入睡時間", "清醒時間", "睡眠總時間(分鐘)", "睡不著建議", "長睡秘訣", 
-            "運動項目1", "運動時間1(分鐘)", "運動項目2", "運動時間2(分鐘)", "運動項目3", "運動時間3(分鐘)", // 預留3項
-            "開心紀錄"
-        ];
-        csvContent += headers.join(",") + "\n";
-        
-        let currentDate = new Date(START_DATE);
-
-        while (currentDate <= END_DATE) {
-            const dateStr = dateToYMD(currentDate);
-            const recordKey = getLocalStorageKey(dateStr);
-            const record = localStorage.getItem(recordKey);
-
-            let row = [dateStr];
-
-            if (record) {
-                const data = JSON.parse(record);
-                
-                // 用藥
-                const meds = data.medication || [];
-                row.push(meds.includes('breakfast') ? 'V' : '');
-                row.push(meds.includes('lunch') ? 'V' : '');
-                row.push(meds.includes('dinner') ? 'V' : '');
-                row.push(meds.includes('bedtime') ? 'V' : '');
-
-                // 睡眠
-                row.push(data.sleepTime || '');
-                row.push(data.wakeTime || '');
-                row.push(data.sleepDuration || '');
-                // 處理文字內含逗號或換行
-                const escapeCsv = (text) => text ? `"${text.replace(/"/g, '""').replace(/\n/g, ' ')}"` : '';
-                row.push(escapeCsv(data.cantSleep));
-                row.push(escapeCsv(data.sleepHelper));
-
-                // 運動 (最多取3項)
-                const exercises = data.exercise || [];
-                for (let i = 0; i < 3; i++) {
-                    if (exercises[i]) {
-                        row.push(escapeCsv(exercises[i].name));
-                        row.push(exercises[i].duration || '');
-                    } else {
-                        row.push(''); row.push('');
-                    }
-                }
-
-                // 開心紀錄
-                row.push(escapeCsv(data.happyEvent));
-
-            } else {
-                 // 如果沒有紀錄，填入空白，確保欄位對齊 (headers.length - 1 個欄位)
-                 row.push(...Array(headers.length - 1).fill(''));
-            }
-
-            csvContent += row.join(",") + "\n";
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-
-        const encodedUri = encodeURI(csvContent);
+        // 觸發下載
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "健康紀錄表_" + new Date().toISOString().slice(0, 10) + ".csv");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "健康小幫手紀錄表.csv");
+        link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-
-        alert("CSV 紀錄檔已下載，可使用 Excel 或其他試算表軟體開啟。");
     }
-
-    // --- 程式初始化：確保網頁載入後立即執行 ---
-    window.onload = initializeCalendar;
 </script>
 
 </body>
